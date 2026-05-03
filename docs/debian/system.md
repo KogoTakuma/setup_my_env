@@ -60,13 +60,38 @@ ibus list-engine | grep -i mozc
 # mozc-jp - Mozc が出れば OK
 ```
 
-### 3. GNOME 入力ソースに Mozc を追加
+### 3. GNOME 入力ソースを Mozc 1 本に
 
-US キーボードと Mozc の両方を入力ソースとして登録：
+**この構成のポイント**：US 配列の xkb と Mozc を別ソースで切り替えるのではなく、Mozc 1 本に統一し、Mozc 内部で「英字直接入力」と「ひらがな」を切り替える。
+GNOME Wayland + IBus + Mozc では、複数ソース間切替がアクティブな IME のキーグラブと競合して不安定になりやすいため、この構成のほうが安定する。
 
 ```bash
-gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('ibus', 'mozc-jp')]"
+# 入力ソースは Mozc のみ
+gsettings set org.gnome.desktop.input-sources sources "[('ibus', 'mozc-jp')]"
+
+# GNOME WM 側の source-switch ショートカットは無効化（1 ソースなので不要、競合除去）
+gsettings set org.gnome.desktop.wm.keybindings switch-input-source "[]"
+gsettings set org.gnome.desktop.wm.keybindings switch-input-source-backward "[]"
+
+# IBus の engine on/off トリガを <Super>space + 半角/全角 キーに設定
+# Control+space はエディタの補完ショートカットと衝突するため除外
+gsettings set org.freedesktop.ibus.general.hotkey trigger "['<Super>space', 'Zenkaku_Hankaku']"
+
+# IBus の source-switch トリガはクリア（1 ソースなので不要）
+gsettings set org.freedesktop.ibus.general.hotkey triggers "[]"
+
+# 反映
+ibus restart
 ```
+
+挙動：
+
+| 状態 | インジケータ | 入力結果 |
+|---|---|---|
+| Mozc OFF（デフォルト） | `A_` | 直接英字 |
+| Mozc ON | `あ` | ひらがな入力 → 変換 |
+
+`Super+Space`（または JIS 物理キー `半角/全角`）で OFF ↔ ON を切替。
 
 ### 4. IM 環境変数の設定（重要）
 
@@ -93,34 +118,31 @@ XMODIFIERS=@im=ibus
 EOF
 ```
 
-### 5. 反映 & 切替
+### 5. 反映確認
 
 - **ログアウト → 再ログイン** で確実に反映（特に環境変数 / 新規プロセスでの IME 認識）
-- 切替ショートカット：**Super + Space**
-- 上部バー右上に `EN` / `あ` のインジケーターが表示される
-- Mozc 利用中の細かい挙動（半角/全角・変換キー等）は Mozc のショートカットで設定
+- インジケータが `A_`（OFF）/ `あ`（ON）に変わるか確認
+- `Super+Space` でトグル
 
-### 6. 確認（再ログイン後）
+### 6. 確認コマンド（再ログイン後）
 
 ```bash
 echo $GTK_IM_MODULE   # ibus
 echo $QT_IM_MODULE    # ibus
 echo $XMODIFIERS      # @im=ibus
 ibus list-engine | grep -i mozc
+gsettings get org.gnome.desktop.input-sources sources    # [('ibus', 'mozc-jp')] のみ
+gsettings get org.freedesktop.ibus.general.hotkey trigger
 ```
 
 ### トラブルシューティング
 
-#### Super+Space が「効くとき効かないとき」がある
+#### Super+Space を押してもトグルしない
 
-GNOME WM の切替バインドと IBus 内部ホットキーが両方とも `<Super>space` に
-bind されているため、押すたびにどちらが拾うかが不定になりレース状態が発生する。
-IBus 側を空にして GNOME 一本に統一する：
-
-```bash
-gsettings set org.freedesktop.ibus.general.hotkey triggers "[]"
-ibus restart
-```
+- IBus デーモンが新設定を読み込んでいない可能性 → `ibus restart` を再実行
+- 既存セッションでキャッシュが残っている可能性 → ログアウト → 再ログイン
+- IBus daemon の起動確認：`pgrep -af ibus-daemon`
+- Mozc サーバの起動確認：`pgrep -af mozc_server`（無ければ最初の入力時に起動）
 
 #### 切替表示は出るが入力が切り替わらない
 
