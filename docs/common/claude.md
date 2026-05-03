@@ -8,6 +8,13 @@ brew install anthropics/claude/claude-code
 ```
 
 ### Debian/Ubuntu
+
+まず `curl` をインストール：
+```bash
+sudo apt update && sudo apt install curl
+```
+
+その後、Claude Code をインストール：
 ```bash
 curl -fsSL https://install.claude.ai/scripts/linux-setup.sh | bash
 ```
