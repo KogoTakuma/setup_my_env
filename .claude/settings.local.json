@@ -6,7 +6,8 @@
       "Bash(git remote *)",
       "Bash(git branch *)",
       "Bash(git add *)",
-      "Bash(git commit -m 'Initial repository setup with master checklist and documentation structure *)"
+      "Bash(git commit -m 'Initial repository setup with master checklist and documentation structure *)",
+      "Bash(git commit -m 'Add Claude documentation *)"
     ]
   }
 }
