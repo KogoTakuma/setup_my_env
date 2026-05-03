@@ -3,9 +3,13 @@
 ## Claude Code CLI のインストール
 
 ### macOS
+
+Homebrew でインストール（推奨）：
 ```bash
-brew install anthropics/claude/claude-code
+brew install --cask claude-code
 ```
+
+または、[claude.ai/code](https://claude.ai/code) から直接ダウンロード。
 
 ### Debian/Ubuntu
 
@@ -16,10 +20,12 @@ sudo apt update && sudo apt install curl
 
 その後、Claude Code をインストール：
 ```bash
-curl -fsSL https://install.claude.ai/scripts/linux-setup.sh | bash
+curl -fsSL https://claude.ai/install.sh | bash
 ```
 
 または、[claude.ai/code](https://claude.ai/code) から直接ダウンロード。
+
+詳細は [Claude Code 公式ドキュメント](https://code.claude.com/docs/en/quickstart) を参照。
 
 ## API キー設定
 
