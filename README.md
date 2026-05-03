@@ -29,8 +29,11 @@ setup_my_env/
 └── docs/
     ├── common/            # 共通セットアップ
     │   ├── git.md
+    │   ├── claude.md
     │   ├── shell.md
-    │   └── tools.md
+    │   ├── cursor.md
+    │   ├── tailscale.md
+    │   └── discord.md
     ├── macos/             # macOS 固有
     │   ├── homebrew.md
     │   ├── dev-tools.md
