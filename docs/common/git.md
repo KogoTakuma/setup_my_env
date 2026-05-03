@@ -1,6 +1,6 @@
-# Git セットアップ（共通）
+# Git セットアップマニュアル（共通）
 
-## Git のインストール
+## 1. Git のインストール
 
 ### macOS
 ```bash
@@ -9,43 +9,61 @@ brew install git
 
 ### Debian/Ubuntu
 ```bash
-sudo apt update
-sudo apt install git
+sudo apt update && sudo apt install git
 ```
 
-## Git の初期設定
+## 2. Git の初期設定
 
 ```bash
-git config --global user.name "Your Name"
-git config --global user.email "your.email@example.com"
+git config --global user.name "KogoTakuma"
+git config --global user.email "1358takuma@gmail.com"
 git config --global core.editor "vim"
 ```
 
-## SSH キー生成
+## 3. SSH キーの自動生成と一括設定
+
+ホスト名（マシン名）を自動取得し、識別しやすいファイル名で鍵を生成・設定します。[cite: 2]
 
 ```bash
-ssh-keygen -t ed25519 -C "your.email@example.com"
+# 環境名（ホスト名）を変数に格納
+ENV_NAME=$(hostname -s)
+KEY_PATH="$HOME/.ssh/id_ed25519_github_${ENV_NAME}"
+
+# SSHキーの生成（パスフレーズなし）
+ssh-keygen -t ed25519 -C "1358takuma@gmail.com" -f "$KEY_PATH" -N ""
+
+# SSH config ファイルへの自動登録
+cat << EOF >> ~/.ssh/config
+
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile $KEY_PATH
+EOF
+
+# 権限の適正化
+chmod 600 ~/.ssh/config
 ```
 
-生成されたキー：
-- 秘密キー: `~/.ssh/id_ed25519`
-- 公開キー: `~/.ssh/id_ed25519.pub`
+## 4. GitHub への登録
 
-## GitHub への登録
+1. **公開鍵のコピー**
+   以下のコマンドの出力をコピーしてください。[cite: 2]
+   ```bash
+   cat "$HOME/.ssh/id_ed25519_github_$(hostname -s).pub"
+   ```
+2. **GitHub での設定**
+   - GitHub の [SSH and GPG keys](https://github.com/settings/keys) へアクセス[cite: 2]
+   - **New SSH key** をクリック[cite: 2]
+   - **Title**: `$(hostname -s)` を実行した際のホスト名を入力[cite: 2]
+   - **Key**: 先ほどコピーした内容を貼り付け[cite: 2]
 
-1. `~/.ssh/id_ed25519.pub` の内容をコピー
-2. GitHub の Settings > SSH and GPG keys > New SSH key
-3. 公開キーを貼り付け
-
-## SSH 接続確認
-
+## 5. SSH 接続確認
 ```bash
 ssh -T git@github.com
 ```
 
-成功時：`Hi username! You've successfully authenticated, but GitHub does not provide shell access.`
-
-## Git 設定確認
+## 6. Git 設定確認
 
 ```bash
 git config --global --list
