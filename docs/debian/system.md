@@ -111,7 +111,18 @@ ibus list-engine | grep -i mozc
 
 ### トラブルシューティング
 
-切替表示は出るが入力が切り替わらない場合：
+#### Super+Space が「効くとき効かないとき」がある
+
+GNOME WM の切替バインドと IBus 内部ホットキーが両方とも `<Super>space` に
+bind されているため、押すたびにどちらが拾うかが不定になりレース状態が発生する。
+IBus 側を空にして GNOME 一本に統一する：
+
+```bash
+gsettings set org.freedesktop.ibus.general.hotkey triggers "[]"
+ibus restart
+```
+
+#### 切替表示は出るが入力が切り替わらない
 
 - 上記「IM 環境変数の設定」が済んでいるか確認 → ログアウト/再ログイン
 - `ibus restart` を再実行
