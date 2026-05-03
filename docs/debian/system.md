@@ -68,17 +68,69 @@ US キーボードと Mozc の両方を入力ソースとして登録：
 gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'us'), ('ibus', 'mozc-jp')]"
 ```
 
-### 4. 反映 & 切替
+### 4. IM 環境変数の設定（重要）
 
-- **ログアウト → 再ログイン** で確実に反映（特に新規プロセスでの IME 認識）
+これを設定しないと「アプリによって切替が効いたり効かなかったり」する症状が出ます。
+原因は GTK アプリや Electron 系（VS Code / Cursor / Discord / Slack 等）が
+`GTK_IM_MODULE` を見て IBus 経路を判定するため。
+
+#### im-config で IBus を選択
+
+```bash
+im-config -n ibus
+```
+
+これで `~/.xinputrc` が生成されます。
+
+#### systemd user environment にも登録（GNOME Wayland で確実に効かせる）
+
+```bash
+mkdir -p ~/.config/environment.d
+cat > ~/.config/environment.d/im.conf <<'EOF'
+GTK_IM_MODULE=ibus
+QT_IM_MODULE=ibus
+XMODIFIERS=@im=ibus
+EOF
+```
+
+### 5. 反映 & 切替
+
+- **ログアウト → 再ログイン** で確実に反映（特に環境変数 / 新規プロセスでの IME 認識）
 - 切替ショートカット：**Super + Space**
 - 上部バー右上に `EN` / `あ` のインジケーターが表示される
 - Mozc 利用中の細かい挙動（半角/全角・変換キー等）は Mozc のショートカットで設定
+
+### 6. 確認（再ログイン後）
+
+```bash
+echo $GTK_IM_MODULE   # ibus
+echo $QT_IM_MODULE    # ibus
+echo $XMODIFIERS      # @im=ibus
+ibus list-engine | grep -i mozc
+```
 
 ### トラブルシューティング
 
 切替表示は出るが入力が切り替わらない場合：
 
-- ログアウト → 再ログイン（最も確実）
+- 上記「IM 環境変数の設定」が済んでいるか確認 → ログアウト/再ログイン
 - `ibus restart` を再実行
 - `pgrep -af ibus-daemon` で daemon の起動状況を確認
+
+#### Electron アプリ（VS Code / Cursor / Discord / Slack 等）で効かない場合
+
+Wayland ネイティブで起動すると IME 連携にフラグが必要：
+
+```bash
+# 一時テスト
+<app> --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-wayland-ime
+```
+
+永続化したい場合は各アプリの flags ファイル（`~/.config/<app>-flags.conf`）に：
+
+```
+--enable-wayland-ime
+--ozone-platform-hint=auto
+```
+
+または `.desktop` ファイルの `Exec=` に同じフラグを追加。
